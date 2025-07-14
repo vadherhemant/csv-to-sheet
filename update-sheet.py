@@ -108,72 +108,70 @@ try:
         body={"requests": requests}
     ).execute()
 
-
+print(f"✅ New block inserted at column {chr(START_COL + 65)} successfully.")
 
 #FORMATTING------------------------
+from gspread_formatting import *
 
-# Add conditional formatting for B vs I, C vs J, D vs K (rows 3–17)
-try:
-    for col_offset, pair in enumerate([("B", "I"), ("C", "J"), ("D", "K")]):
-        col_left, col_right = pair
-        row_start = 3
-        row_end = 18  # 3 to 17 inclusive
-        col_left_idx = ord(col_left) - ord("A")
-        col_right_idx = ord(col_right) - ord("A")
+# Ensure you already have: `worksheet`, `sheet_id`, etc.
+rules = get_conditional_format_rules(worksheet)
+rules.clear()
 
-        # Red background for mismatch
-        red_rule = ConditionalFormatRule(
-            ranges=[GridRange(
-                sheetId=sheet_id,
-                startRowIndex=row_start - 1,
-                endRowIndex=row_end,
-                startColumnIndex=col_left_idx,
-                endColumnIndex=col_left_idx + 1
-            )],
-            booleanRule=BooleanRule(
-                condition=BooleanCondition(
-                    type='CUSTOM_FORMULA',
-                    values=[{'userEnteredValue': f'=${col_left}{row_start}<>${col_right}{row_start}'}]
-                ),
-                format=CellFormat(backgroundColor=color(1, 0.8, 0.8))
-            )
+# Define column pairs and row range
+column_pairs = [("B", "I"), ("C", "J"), ("D", "K")]
+start_row = 3
+end_row = 18  # Up to row 17 inclusive
+
+for left_col, right_col in column_pairs:
+    left_idx = ord(left_col) - ord("A")
+    
+    # Red rule for mismatch
+    rules.append(ConditionalFormatRule(
+        ranges=[GridRange(
+            sheetId=sheet_id,
+            startRowIndex=start_row - 1,
+            endRowIndex=end_row,
+            startColumnIndex=left_idx,
+            endColumnIndex=left_idx + 1
+        )],
+        booleanRule=BooleanRule(
+            condition=BooleanCondition(
+                type='CUSTOM_FORMULA',
+                values=[{'userEnteredValue': f'=INDIRECT("{left_col}" & ROW())<>INDIRECT("{right_col}" & ROW())'}]
+            ),
+            format=CellFormat(backgroundColor=color(1, 0.8, 0.8))  # Light Red
         )
+    ))
 
-        # Green background for match
-        green_rule = ConditionalFormatRule(
-            ranges=[GridRange(
-                sheetId=sheet_id,
-                startRowIndex=row_start - 1,
-                endRowIndex=row_end,
-                startColumnIndex=col_left_idx,
-                endColumnIndex=col_left_idx + 1
-            )],
-            booleanRule=BooleanRule(
-                condition=BooleanCondition(
-                    type='CUSTOM_FORMULA',
-                    values=[{'userEnteredValue': f'=${col_left}{row_start}=${col_right}{row_start}'}]
-                ),
-                format=CellFormat(backgroundColor=color(0.8, 1, 0.8))
-            )
+    # Green rule for match
+    rules.append(ConditionalFormatRule(
+        ranges=[GridRange(
+            sheetId=sheet_id,
+            startRowIndex=start_row - 1,
+            endRowIndex=end_row,
+            startColumnIndex=left_idx,
+            endColumnIndex=left_idx + 1
+        )],
+        booleanRule=BooleanRule(
+            condition=BooleanCondition(
+                type='CUSTOM_FORMULA',
+                values=[{'userEnteredValue': f'=INDIRECT("{left_col}" & ROW())=INDIRECT("{right_col}" & ROW())'}]
+            ),
+            format=CellFormat(backgroundColor=color(0.8, 1, 0.8))  # Light Green
         )
+    ))
 
-        rules.append(red_rule)
-        rules.append(green_rule)
+# Save all rules
+rules.save()
 
-    rules.save()
+# Resize columns I to N to 50px
+from gspread_formatting.dataframe import set_column_width
 
-except Exception as e:
-    print(f"Error during conditional formatting: {e}")
+for col_letter in ["I", "J", "K", "L", "M", "N"]:
+    col_index = ord(col_letter) - ord("A")
+    set_column_width(worksheet, col_index, 50)
 
-
-# 5. Resize columns I–N to 50% of current width
-# First: get current widths (we'll just set a fixed scaled width)
-# Example: if default is 100px -> set 50px
-set_column_widths(ws, [("I:N", 50)])  # adjust scale value
-
-print("✔️ Conditional formatting and resizing applied!")
-
-    print(f"✅ New block inserted at column {chr(START_COL + 65)} successfully.")
+print("✔️ Conditional formatting and resizing applied successfully!")
 
 except Exception as e:
     print(f"❌ ERROR: {e}")
