@@ -113,6 +113,7 @@ try:
 #FORMATTING------------------------
 
     # 1‑3+4. Combine matching logic for B/I, C/J, D/K over rows 3–17
+try:
 for col_offset, pair in enumerate([("B", "I"), ("C", "J"), ("D", "K")]):
     col_left, col_right = pair
     a = 3  # start row
@@ -145,6 +146,8 @@ for col_offset, pair in enumerate([("B", "I"), ("C", "J"), ("D", "K")]):
     rules.append(r_green)
 
 rules.save()
+except Exception as e:
+    print(f"Error: {e}")
 
 # 5. Resize columns I–N to 50% of current width
 # First: get current widths (we'll just set a fixed scaled width)
