@@ -112,42 +112,59 @@ try:
 
 #FORMATTING------------------------
 
-    # 1‑3+4. Combine matching logic for B/I, C/J, D/K over rows 3–17
+# Add conditional formatting for B vs I, C vs J, D vs K (rows 3–17)
 try:
-for col_offset, pair in enumerate([("B", "I"), ("C", "J"), ("D", "K")]):
-    col_left, col_right = pair
-    a = 3  # start row
-    b = 18  # exclusive end row (i.e. rows 3–17)
-    a_idx = ord(col_left) - ord("A")
-    b_idx = ord(col_right) - ord("A")
-    # Red rule: mismatch
-    r_red = ConditionalFormatRule(
-        ranges=[GridRange(sheetId=sheet_id,
-                          startRowIndex=a-1, endRowIndex=b,
-                          startColumnIndex=a_idx, endColumnIndex=a_idx+1)],
-        booleanRule=BooleanRule(
-            condition=BooleanCondition('CUSTOM_FORMULA',
-                                       [f'=${col_left}{a}<>${col_right}{a}']),
-            format=CellFormat(backgroundColor=color(1, 0.8, 0.8))
-        )
-    )
-    # Green rule: match
-    r_green = ConditionalFormatRule(
-        ranges=[GridRange(sheetId=sheet_id,
-                          startRowIndex=a-1, endRowIndex=b,
-                          startColumnIndex=a_idx, endColumnIndex=a_idx+1)],
-        booleanRule=BooleanRule(
-            condition=BooleanCondition('CUSTOM_FORMULA',
-                                       [f'=${col_left}{a}=${col_right}{a}']),
-            format=CellFormat(backgroundColor=color(0.8, 1, 0.8))
-        )
-    )
-    rules.append(r_red)
-    rules.append(r_green)
+    for col_offset, pair in enumerate([("B", "I"), ("C", "J"), ("D", "K")]):
+        col_left, col_right = pair
+        row_start = 3
+        row_end = 18  # 3 to 17 inclusive
+        col_left_idx = ord(col_left) - ord("A")
+        col_right_idx = ord(col_right) - ord("A")
 
-rules.save()
+        # Red background for mismatch
+        red_rule = ConditionalFormatRule(
+            ranges=[GridRange(
+                sheetId=sheet_id,
+                startRowIndex=row_start - 1,
+                endRowIndex=row_end,
+                startColumnIndex=col_left_idx,
+                endColumnIndex=col_left_idx + 1
+            )],
+            booleanRule=BooleanRule(
+                condition=BooleanCondition(
+                    type='CUSTOM_FORMULA',
+                    values=[{'userEnteredValue': f'=${col_left}{row_start}<>${col_right}{row_start}'}]
+                ),
+                format=CellFormat(backgroundColor=color(1, 0.8, 0.8))
+            )
+        )
+
+        # Green background for match
+        green_rule = ConditionalFormatRule(
+            ranges=[GridRange(
+                sheetId=sheet_id,
+                startRowIndex=row_start - 1,
+                endRowIndex=row_end,
+                startColumnIndex=col_left_idx,
+                endColumnIndex=col_left_idx + 1
+            )],
+            booleanRule=BooleanRule(
+                condition=BooleanCondition(
+                    type='CUSTOM_FORMULA',
+                    values=[{'userEnteredValue': f'=${col_left}{row_start}=${col_right}{row_start}'}]
+                ),
+                format=CellFormat(backgroundColor=color(0.8, 1, 0.8))
+            )
+        )
+
+        rules.append(red_rule)
+        rules.append(green_rule)
+
+    rules.save()
+
 except Exception as e:
-    print(f"Error: {e}")
+    print(f"Error during conditional formatting: {e}")
+
 
 # 5. Resize columns I–N to 50% of current width
 # First: get current widths (we'll just set a fixed scaled width)
