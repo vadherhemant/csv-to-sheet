@@ -108,6 +108,51 @@ try:
         body={"requests": requests}
     ).execute()
 
+
+
+#FORMATTING------------------------
+
+    # 1‑3+4. Combine matching logic for B/I, C/J, D/K over rows 3–17
+for col_offset, pair in enumerate([("B", "I"), ("C", "J"), ("D", "K")]):
+    col_left, col_right = pair
+    a = 3  # start row
+    b = 18  # exclusive end row (i.e. rows 3–17)
+    a_idx = ord(col_left) - ord("A")
+    b_idx = ord(col_right) - ord("A")
+    # Red rule: mismatch
+    r_red = ConditionalFormatRule(
+        ranges=[GridRange(sheetId=sheet_id,
+                          startRowIndex=a-1, endRowIndex=b,
+                          startColumnIndex=a_idx, endColumnIndex=a_idx+1)],
+        booleanRule=BooleanRule(
+            condition=BooleanCondition('CUSTOM_FORMULA',
+                                       [f'=${col_left}{a}<>${col_right}{a}']),
+            format=CellFormat(backgroundColor=color(1, 0.8, 0.8))
+        )
+    )
+    # Green rule: match
+    r_green = ConditionalFormatRule(
+        ranges=[GridRange(sheetId=sheet_id,
+                          startRowIndex=a-1, endRowIndex=b,
+                          startColumnIndex=a_idx, endColumnIndex=a_idx+1)],
+        booleanRule=BooleanRule(
+            condition=BooleanCondition('CUSTOM_FORMULA',
+                                       [f'=${col_left}{a}=${col_right}{a}']),
+            format=CellFormat(backgroundColor=color(0.8, 1, 0.8))
+        )
+    )
+    rules.append(r_red)
+    rules.append(r_green)
+
+rules.save()
+
+# 5. Resize columns I–N to 50% of current width
+# First: get current widths (we'll just set a fixed scaled width)
+# Example: if default is 100px -> set 50px
+set_column_widths(ws, [("I:N", 50)])  # adjust scale value
+
+print("✔️ Conditional formatting and resizing applied!")
+
     print(f"✅ New block inserted at column {chr(START_COL + 65)} successfully.")
 
 except Exception as e:
