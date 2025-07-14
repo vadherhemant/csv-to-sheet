@@ -26,4 +26,4 @@ jobs:
         run: echo '${{ secrets.GSHEETS_CREDS }}' > creds.json
 
       - name: Run script
-        run: python update_sheet.py
+        run: python update-sheet.py
