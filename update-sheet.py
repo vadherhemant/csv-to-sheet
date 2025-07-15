@@ -6,8 +6,8 @@ from google.oauth2.service_account import Credentials as GoogleCredentials
 import copy
 
 # CONFIG
-CSV_URL = "https://raw.githubusercontent.com/vadherhemant/csv-to-sheet/refs/heads/main/source.csv"
-SPREADSHEET_ID = "1gpV5T5Ol45VqmS8nI6Xk2MXWEeJMiXU1yoFUDMODi6g"
+CSV_URL = "https://raw.githubusercontent.com/harshali2003/csv-to-sheet/refs/heads/main/dev-int.csv"
+SPREADSHEET_ID = "1_XanKnA9VBUVkF8O729Dp-LK-tuH_4y34-lGKme4b1U"
 CREDENTIALS_FILE = "creds.json"
 
 # Constants
@@ -108,70 +108,7 @@ try:
         body={"requests": requests}
     ).execute()
 
-print(f"✅ New block inserted at column {chr(START_COL + 65)} successfully.")
-
-#FORMATTING------------------------
-from gspread_formatting import *
-
-# Ensure you already have: `worksheet`, `sheet_id`, etc.
-rules = get_conditional_format_rules(worksheet)
-rules.clear()
-
-# Define column pairs and row range
-column_pairs = [("B", "I"), ("C", "J"), ("D", "K")]
-start_row = 3
-end_row = 18  # Up to row 17 inclusive
-
-for left_col, right_col in column_pairs:
-    left_idx = ord(left_col) - ord("A")
-    
-    # Red rule for mismatch
-    rules.append(ConditionalFormatRule(
-        ranges=[GridRange(
-            sheetId=sheet_id,
-            startRowIndex=start_row - 1,
-            endRowIndex=end_row,
-            startColumnIndex=left_idx,
-            endColumnIndex=left_idx + 1
-        )],
-        booleanRule=BooleanRule(
-            condition=BooleanCondition(
-                type='CUSTOM_FORMULA',
-                values=[{'userEnteredValue': f'=INDIRECT("{left_col}" & ROW())<>INDIRECT("{right_col}" & ROW())'}]
-            ),
-            format=CellFormat(backgroundColor=color(1, 0.8, 0.8))  # Light Red
-        )
-    ))
-
-    # Green rule for match
-    rules.append(ConditionalFormatRule(
-        ranges=[GridRange(
-            sheetId=sheet_id,
-            startRowIndex=start_row - 1,
-            endRowIndex=end_row,
-            startColumnIndex=left_idx,
-            endColumnIndex=left_idx + 1
-        )],
-        booleanRule=BooleanRule(
-            condition=BooleanCondition(
-                type='CUSTOM_FORMULA',
-                values=[{'userEnteredValue': f'=INDIRECT("{left_col}" & ROW())=INDIRECT("{right_col}" & ROW())'}]
-            ),
-            format=CellFormat(backgroundColor=color(0.8, 1, 0.8))  # Light Green
-        )
-    ))
-
-# Save all rules
-rules.save()
-
-# Resize columns I to N to 50px
-from gspread_formatting.dataframe import set_column_width
-
-for col_letter in ["I", "J", "K", "L", "M", "N"]:
-    col_index = ord(col_letter) - ord("A")
-    set_column_width(worksheet, col_index, 50)
-
-print("✔️ Conditional formatting and resizing applied successfully!")
+    print(f"✅ New block inserted at column {chr(START_COL + 65)} successfully.")
 
 except Exception as e:
     print(f"❌ ERROR: {e}")
